@@ -60,3 +60,35 @@ Trakt.requestCredential = function (options, credentialRequestCompleteCallback) 
     popupOptions: { height: 600 }
   });
 };
+
+
+Trakt.getWatched = function (accessToken, username, type) {
+    try {
+        var config = ServiceConfiguration.configurations.findOne({service: 'trakt'});
+        if (!config)
+            throw new ServiceConfiguration.ConfigError();
+
+        var options = {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + accessToken,
+                'trakt-api-version': '2',
+                'trakt-api-key': config.clientId
+            },
+            params: {
+                access_token: accessToken
+            }
+        };
+
+        return HTTP.get(
+            "https://api-v2launch.trakt.tv/users" +
+            "/" + username +
+            "/watched" +
+            "/" + type,
+            options);
+
+    } catch(err) {
+        throw _.extend(new Error("Failed to fetch watched from Trakt. " + err.message),
+            {response: err.response});
+    }
+};

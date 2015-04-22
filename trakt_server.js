@@ -3,7 +3,7 @@ Trakt = {};
 // https://developers.trakt.com/accounts/docs/OAuth2Login#userinfocall
 //Google.whitelistedFields = ['id', 'email', 'verified_email', 'name', 'given_name',
 //                   'family_name', 'picture', 'locale', 'timezone', 'gender'];
-
+Trakt.whitelistedFields = ['id', 'username', 'name', 'gender', 'picture'];
 
 OAuth.registerService('trakt', 2, null, function(query) {
 
@@ -12,31 +12,31 @@ OAuth.registerService('trakt', 2, null, function(query) {
   //var idToken = response.idToken;
   var identity = getIdentity(accessToken);
 
-  console.log(accessToken);
-  console.log(identity);
-
   var serviceData = {
-    id: response.username,
+    id: response.idToken,
     accessToken: accessToken,
+    refreshToken: response.refreshToken,
     expiresAt: (+new Date) + (1000 * response.expiresIn)
   };
 
-  //var fields = _.pick(identity, Google.whitelistedFields);
-  //_.extend(serviceData, fields);
+
+  var fields = _.pick(identity, Trakt.whitelistedFields);
+  _.extend(serviceData, fields);
 
   // only set the token in serviceData if it's there. this ensures
   // that we don't lose old ones (since we only get this on the first
   // log in attempt)
   if (response.refreshToken)
-    serviceData.refreshToken = response.refreshToken;
+    serviceData.refreshToken = response.refreshToken;;
 
   return {
-    serviceData: serviceData
-    ,options: {
-      profile: {
-        name: identity.name
+      serviceData: serviceData
+      , options: {
+          profile: {
+              name: identity.data.user.name,
+              username: identity.data.user.username
+          }
       }
-    }
   };
 });
 
@@ -81,8 +81,6 @@ var getIdentity = function (accessToken) {
     var config = ServiceConfiguration.configurations.findOne({service: 'trakt'});
     if (!config)
       throw new ServiceConfiguration.ConfigError();
-    //console.log(accessToken);
-    //console.log(config.clientId);
 
     var options = {
       headers: {
@@ -109,3 +107,4 @@ var getIdentity = function (accessToken) {
 Trakt.retrieveCredential = function(credentialToken, credentialSecret) {
   return OAuth.retrieveCredential(credentialToken, credentialSecret);
 };
+
