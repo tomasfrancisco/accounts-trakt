@@ -11,13 +11,6 @@ if (Meteor.isClient) {
     var credentialRequestCompleteCallback = Accounts.oauth.credentialRequestCompleteHandler(callback);
     Trakt.requestCredential(options, credentialRequestCompleteCallback);
     };
-
-    Meteor.methods({
-        'getTrakt' : function(token, username, type) {
-            console.log(Trakt.getWatched(token, username, type));
-            return;
-        }
-    })
 } else {
   Accounts.addAutopublishFields({
     //forLoggedInUser: _.map(
@@ -35,9 +28,12 @@ if (Meteor.isClient) {
     //function (subfield) { return 'services.trakt.' + subfield; })
     //}
 
-    forLoggedInUser: _.map(
-        Trakt.whitelistedFields.concat(['accessToken', 'expiresAt']), // don't publish refresh token
-        function (subfield) { return 'services.trakt.' + subfield; }),
+    forLoggedInUser:
+        //Trakt.whitelistedFields.concat(['accessToken', 'expiresAt', 'picture']), // don't publish refresh token
+
+        function (subfield) {
+            return 'services.trakt.' + subfield;
+        },
     forOtherUsers: []
   });
 }
